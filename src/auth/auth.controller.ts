@@ -7,7 +7,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common'
-import { Prisma, User } from '@prisma/client'
+import { Prisma as PrismaPostgres, User } from '.prisma/postgres-client'
 import { AuthService } from './auth.service'
 import { AuthSignInDto } from './dtos/auth.signin.dto'
 import { JwtAuthGuard } from './jwt.auth.guard'
@@ -18,13 +18,15 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  signUp(@Body() auth: Prisma.UserCreateInput) {
+  signUp(
+    @Body() auth: PrismaPostgres.UserCreateInput,
+  ): Promise<{ access_token: string }> {
     return this.authService.signUp(auth)
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('signin')
-  signIn(@Body() auth: AuthSignInDto) {
+  signIn(@Body() auth: AuthSignInDto): Promise<{ access_token: string }> {
     return this.authService.signIn(auth)
   }
 
@@ -33,6 +35,6 @@ export class AuthController {
   @Post('signout')
   async signOut(@Req() req: Request) {
     const user = req.user as User
-    return this.authService.signOut(user)
+    this.authService.signOut(user)
   }
 }

@@ -1,10 +1,10 @@
 import { ForbiddenException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import { Prisma, PrismaClient, User } from '@prisma/client'
 import * as argon from 'argon2'
 import { AuthSignInDto } from './dtos/auth.signin.dto'
-import { access } from 'fs'
+import { PrismaService } from 'src/prisma/prisma.service'
+import { Prisma as PrismaPostgres, User } from '.prisma/postgres-client'
 
 @Injectable()
 export class AuthService {
@@ -13,7 +13,7 @@ export class AuthService {
   constructor(
     private configService: ConfigService,
     private jwt: JwtService,
-    private prisma: PrismaClient,
+    private prisma: PrismaService,
   ) {
     this.expiresIn = this.configService.get<string>('JWT_EXPIRES_IN')
   }
@@ -35,10 +35,10 @@ export class AuthService {
   }
 
   async signUp(
-    data: Prisma.UserCreateInput,
+    data: PrismaPostgres.UserCreateInput,
   ): Promise<{ access_token: string }> {
     data = { ...data, password: await argon.hash(data.password) }
-    const user = await this.prisma.user.create({ data })
+    const user = await this.prisma.postgres.user.create({ data })
     return {
       access_token: await this.signToken(
         user.id,
@@ -49,7 +49,7 @@ export class AuthService {
   }
 
   async signIn(auth: AuthSignInDto): Promise<{ access_token: string }> {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.postgres.user.findFirst({
       where: {
         OR: [
           auth.email ? { email: auth.email } : undefined,
@@ -74,7 +74,7 @@ export class AuthService {
   }
 
   async signOut(user: User) {
-    await this.prisma.user.update({
+    await this.prisma.postgres.user.update({
       where: { id: user.id },
       data: { tokenVersion: user.tokenVersion + 1 },
     })
