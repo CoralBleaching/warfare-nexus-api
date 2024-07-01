@@ -20,14 +20,17 @@ export class UserController {
   @Post('send-friend-request/:userId/:friendId')
   sendFriendRequest(
     @Req() req: Request,
-    @Param('userId') userId: number,
-    @Param('friendId') friendId: number,
+    @Param('userId') userId: string,
+    @Param('friendId') friendId: string,
   ) {
     const user = req.user as User
-    if (user.id !== userId) {
+    console.log(
+      `${user.id} ${user.username}\nuserId ${userId}\n${typeof user.id}\n${typeof +userId}`,
+    )
+    if (user.id !== +userId) {
       throw new UnauthorizedException('Wrong credentials.')
     }
-    return this.userService.sendFriendRequest(userId, friendId)
+    return this.userService.sendFriendRequest(+userId, +friendId)
   }
 
   @Post('respond-to-friend-request/:userId/:friendId')

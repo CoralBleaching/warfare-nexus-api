@@ -15,7 +15,7 @@ export class UserService {
     const relationship = await this.prisma.postgres.relationship.findUnique({
       where: { user1Id_user2Id: { user1Id: friend.id, user2Id: user.id } },
     })
-    if (relationship.status === RelationshipStatus.BLOCKED) {
+    if (relationship && relationship.status === RelationshipStatus.BLOCKED) {
       throw new ForbiddenException(`User ${friend.username} has blocked you`)
     }
     // TODO: notify the friend!
