@@ -21,19 +21,28 @@ model User {
   password     String
   tokenVersion Int    @default(0)
 
-  matches1   Match[]    @relation("user1")
-  matches2   Match[]    @relation("user2")
-  units      Unit[]
-  cards      Card[]
-  properties Property[]
+  matches1       Match[]        @relation("user1")
+  matches2       Match[]        @relation("user2")
+  units          Unit[]
+  cards          Card[]
+  properties     Property[]
+  relationships1 Relationship[] @relation("user1")
+  relationships2 Relationship[] @relation("user2")
+}
+
+enum MatchStatus {
+  SINGLE
+  PENDING
+  ACCEPTED
 }
 
 model Match {
-  id    Int    @id @default(autoincrement())
-  user1 User   @relation("user1", fields: [user1Id], references: [id])
-  user2 User?  @relation("user2", fields: [user2Id], references: [id])
-  turn  Int
-  map   String
+  id     Int         @id @default(autoincrement())
+  user1  User        @relation("user1", fields: [user1Id], references: [id])
+  user2  User?       @relation("user2", fields: [user2Id], references: [id])
+  turn   Int
+  map    String
+  status MatchStatus
 
   user1Id Int
   user2Id Int?
@@ -41,6 +50,23 @@ model Match {
   units      Unit[]
   cards      Card[]
   properties Property[]
+}
+
+enum RelationshipStatus {
+  FRIEND
+  BLOCKED
+  PENDING
+}
+
+model Relationship {
+  user1  User               @relation("user1", fields: [user1Id], references: [id])
+  user2  User               @relation("user2", fields: [user2Id], references: [id])
+  status RelationshipStatus
+
+  user1Id Int
+  user2Id Int
+
+  @@unique([user1Id, user2Id])
 }
 
 model Unit {
