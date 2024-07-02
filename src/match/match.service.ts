@@ -20,7 +20,7 @@ export class MatchService {
       },
       select: { status: true },
     })
-    if (!relationship || relationship.status !== RelationshipStatus.FRIEND) {
+    if (!relationship || relationship.status !== RelationshipStatus.FRIENDS) {
       throw new BadRequestException('You can only invite friends to a match')
     }
     // TODO: notify invitee

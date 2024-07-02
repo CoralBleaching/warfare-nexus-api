@@ -54,9 +54,12 @@ model Match {
 }
 
 enum RelationshipStatus {
-  FRIEND
-  BLOCKED
-  PENDING
+  FRIENDS
+  USER_1_BLOCKED
+  USER_2_BLOCKED
+  BOTH_BLOCKED
+  USER_1_PENDING
+  USER_2_PENDING
 }
 
 model Relationship {
@@ -71,25 +74,26 @@ model Relationship {
 }
 
 model Unit {
-  id       Int    @id @default(autoincrement())
-  hp       Int    @default(10)
+  id       Int     @id @default(autoincrement())
+  hp       Int     @default(10)
   ammo     Int
-  battery  Int    @default(100)
-  exp      Float  @default(0)
+  battery  Int     @default(100)
+  exp      Float   @default(0)
   position String
-  typeCode String
-  user     User   @relation(fields: [userId], references: [id])
-  match    Match  @relation(fields: [matchId], references: [id])
+  code     String
+  user     User    @relation(fields: [userId], references: [id])
+  match    Match   @relation(fields: [matchId], references: [id])
+  moved    Boolean @default(false)
 
   userId  Int
   matchId Int
 }
 
 model Card {
-  id       Int    @id @default(autoincrement())
-  typeCode String
-  user     User   @relation(fields: [userId], references: [id])
-  match    Match  @relation(fields: [matchId], references: [id])
+  id    Int    @id @default(autoincrement())
+  code  String
+  user  User   @relation(fields: [userId], references: [id])
+  match Match  @relation(fields: [matchId], references: [id])
 
   userId  Int
   matchId Int
@@ -97,7 +101,7 @@ model Card {
 
 model Property {
   id       Int    @id @default(autoincrement())
-  typeCode String
+  code     String
   position String
   user     User?  @relation(fields: [userId], references: [id])
   match    Match  @relation(fields: [matchId], references: [id])
