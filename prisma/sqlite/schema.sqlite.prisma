@@ -1,0 +1,48 @@
+datasource sqlite {
+    provider = "sqlite"
+    url      = env("SQLITE_URL")
+}
+
+generator sqliteClient {
+    provider = "prisma-client-js"
+    output   = "../../node_modules/.prisma/sqlite-client"
+}
+
+model MovementType {
+    id          Int        @id @default(autoincrement())
+    name        String
+    description String
+    code        String     @unique
+    unitTypes   UnitType[]
+}
+
+model UnitType {
+    id                         Int          @id @default(autoincrement())
+    name                       String
+    code                       String       @unique
+    description                String
+    primaryPower               Float
+    secondaryPower             Float
+    maxAmmo                    Int
+    movementTypeId             Int
+    attackRange                Int
+    primaryWeaponName          String
+    primaryWeaponDescription   String
+    secondaryWeaponDescription String
+    movementType               MovementType @relation(fields: [movementTypeId], references: [id])
+}
+
+model PropertyType {
+    id          Int    @id @default(autoincrement())
+    name        String
+    description String
+    code        String @unique
+}
+
+model TerrainType {
+    id          Int    @id @default(autoincrement())
+    name        String
+    description String
+    defense     Int
+    code        String @unique
+}

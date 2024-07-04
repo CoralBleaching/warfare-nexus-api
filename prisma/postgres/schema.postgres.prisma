@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/.prisma/postgres-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int    @id @default(autoincrement())
+  username     String @unique
+  email        String @unique
+  password     String
+  tokenVersion Int    @default(0)
+
+  matches1       Match[]        @relation("user1")
+  matches2       Match[]        @relation("user2")
+  units          Unit[]
+  cards          Card[]
+  properties     Property[]
+  relationships1 Relationship[] @relation("user1")
+  relationships2 Relationship[] @relation("user2")
+}
+
+enum MatchStatus {
+  SINGLE
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Match {
+  id     Int         @id @default(autoincrement())
+  user1  User        @relation("user1", fields: [user1Id], references: [id])
+  user2  User?       @relation("user2", fields: [user2Id], references: [id])
+  turn   Int         @default(1)
+  map    String
+  status MatchStatus
+
+  user1Id Int
+  user2Id Int?
+
+  units      Unit[]
+  cards      Card[]
+  properties Property[]
+}
+
+enum RelationshipStatus {
+  FRIENDS
+  USER_1_BLOCKED
+  USER_2_BLOCKED
+  BOTH_BLOCKED
+  USER_1_PENDING
+  USER_2_PENDING
+}
+
+model Relationship {
+  user1  User               @relation("user1", fields: [user1Id], references: [id])
+  user2  User               @relation("user2", fields: [user2Id], references: [id])
+  status RelationshipStatus
+
+  user1Id Int
+  user2Id Int
+
+  @@unique([user1Id, user2Id])
+}
+
+model Unit {
+  id       Int     @id @default(autoincrement())
+  hp       Int     @default(10)
+  ammo     Int
+  battery  Int     @default(100)
+  exp      Float   @default(0)
+  position String
+  code     String
+  user     User    @relation(fields: [userId], references: [id])
+  match    Match   @relation(fields: [matchId], references: [id])
+  moved    Boolean @default(false)
+
+  userId  Int
+  matchId Int
+}
+
+model Card {
+  id    Int    @id @default(autoincrement())
+  code  String
+  user  User   @relation(fields: [userId], references: [id])
+  match Match  @relation(fields: [matchId], references: [id])
+
+  userId  Int
+  matchId Int
+}
+
+model Property {
+  id       Int    @id @default(autoincrement())
+  code     String
+  position String
+  user     User?  @relation(fields: [userId], references: [id])
+  match    Match  @relation(fields: [matchId], references: [id])
+
+  userId  Int?
+  matchId Int
+}
