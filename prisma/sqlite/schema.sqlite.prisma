@@ -9,11 +9,13 @@ generator sqliteClient {
 }
 
 model MovementType {
-    id          Int        @id @default(autoincrement())
-    name        String
-    description String
-    code        String     @unique
-    unitTypes   UnitType[]
+    id           Int           @id @default(autoincrement())
+    name         String
+    description  String
+    range        Int
+    code         String        @unique
+    unitTypes    UnitType[]
+    traversibles Traversible[]
 }
 
 model UnitType {
@@ -24,12 +26,32 @@ model UnitType {
     primaryPower               Float
     secondaryPower             Float
     maxAmmo                    Int
-    movementTypeId             Int
     attackRange                Int
     primaryWeaponName          String
     primaryWeaponDescription   String
     secondaryWeaponDescription String
     movementType               MovementType @relation(fields: [movementTypeId], references: [id])
+    movementTypeId             Int
+}
+
+model TerrainType {
+    id           Int           @id @default(autoincrement())
+    name         String
+    description  String
+    defense      Int
+    code         String        @unique
+    traversibles Traversible[]
+}
+
+model Traversible {
+    movementType   MovementType @relation(fields: [movementTypeId], references: [id])
+    terrainType    TerrainType  @relation(fields: [terrainTypeId], references: [id])
+    movementTypeId Int
+    terrainTypeId  Int
+    traversible    Boolean
+    penalty        Int
+
+    @@unique([movementTypeId, terrainTypeId])
 }
 
 model PropertyType {
@@ -39,10 +61,10 @@ model PropertyType {
     code        String @unique
 }
 
-model TerrainType {
-    id          Int    @id @default(autoincrement())
-    name        String
+model Map {
+    id          Int      @id @unique @default(autoincrement())
+    name        String   @unique
     description String
-    defense     Int
-    code        String @unique
+    data        String   @unique
+    createdAt   DateTime @default(now())
 }

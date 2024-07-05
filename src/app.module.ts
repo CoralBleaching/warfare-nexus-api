@@ -6,7 +6,8 @@ import { AuthModule } from './auth/auth.module'
 import { MatchModule } from './match/match.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { ConfigModule } from '@nestjs/config'
-import { GameplayModule } from './gameplay/gameplay.module';
+import { GameplayModule } from './gameplay/gameplay.module'
+import { MapModule } from './map/map.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { GameplayModule } from './gameplay/gameplay.module';
     PrismaModule,
     ConfigModule.forRoot({ isGlobal: true }),
     GameplayModule,
+    MapModule,
   ],
   controllers: [AppController],
   providers: [AppService],

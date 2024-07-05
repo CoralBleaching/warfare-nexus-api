@@ -8,7 +8,7 @@ import {
 import { RelationshipStatus, Prisma as PrismaPostgres } from '.prisma/postgres-client'
 import { PrismaService } from 'src/prisma/prisma.service'
 import { UpdateUserDto } from './dtos/update.user.dto'
-import { PRISMA_UNIQUE_CONSTRAINT_VIOLATION } from 'src/utils/constants'
+import { handleError } from 'src/utils/functions'
 
 @Injectable()
 export class UserService {
@@ -163,16 +163,7 @@ export class UserService {
 
   async updateUser(userId: number, data: Partial<UpdateUserDto>) {
     return this.prisma.postgres.user
-      .update({
-        where: { id: userId },
-        data,
-      })
-      .catch((err) => {
-        if (err instanceof PrismaPostgres.PrismaClientKnownRequestError) {
-          if (err.code === PRISMA_UNIQUE_CONSTRAINT_VIOLATION) {
-            throw new BadRequestException('Username or email already registered')
-          }
-        }
-      })
+      .update({ where: { id: userId }, data })
+      .catch((err) => handleError(err, 'Username or email already registered'))
   }
 }
