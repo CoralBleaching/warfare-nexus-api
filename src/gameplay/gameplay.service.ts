@@ -6,40 +6,35 @@ import { MapInfo, MapService } from 'src/map/map.service'
 export class GameplayService {
   private terrainTypeIds: Map<string, number>
   private movementTypeIds: Map<string, number>
+  private isTraversible: Map<string, boolean>
 
   constructor(
     private prisma: PrismaService,
     private readonly mapService: MapService,
   ) {
-    this.terrainTypeIds = new Map<string, number>()
-    prisma.sqlite.terrainType
+    this.isTraversible = new Map()
+    prisma.sqlite.traversible
       .findMany({
-        select: { id: true, code: true },
+        select: {
+          terrainType: true,
+          movementType: true,
+          traversible: true,
+        },
       })
-      .then((arr) => arr.map((value) => this.terrainTypeIds.set(value.code, value.id)))
-    this.movementTypeIds = new Map<string, number>()
-    prisma.sqlite.movementType
-      .findMany({
-        select: { id: true, code: true },
-      })
-      .then((arr) => arr.map((value) => this.movementTypeIds.set(value.code, value.id)))
+      .then((arr) =>
+        arr.map((value) => {
+          this.isTraversible.set(
+            value.terrainType.code + value.movementType.code,
+            value.traversible,
+          )
+        }),
+      )
   }
 
   private getTerrainFromMap(pos: [number, number], mapInfo: MapInfo) {
     const [i, j] = pos
     const { nrows, ncols, data } = mapInfo
     return data.charAt(i * ncols + j)
-  }
-
-  private async isTraversible(terrainTypeCode: string, movementTypeCode: string) {
-    const terrainTypeId = this.terrainTypeIds.get(terrainTypeCode)
-    const movementTypeId = this.movementTypeIds.get(movementTypeCode)
-    return this.prisma.sqlite.traversible
-      .findUnique({
-        where: { movementTypeId_terrainTypeId: { terrainTypeId, movementTypeId } },
-        select: { traversible: true },
-      })
-      .then((value) => value.traversible)
   }
 
   private async isValidPath(
@@ -51,7 +46,9 @@ export class GameplayService {
   ) {
     const info = await this.mapService.getMapInfo(mapId)
     if (
-      !path.every((pos) => this.isTraversible(this.getTerrainFromMap(pos, info), movementTypeCode))
+      !path.every((pos) =>
+        this.isTraversible.get(this.getTerrainFromMap(pos, info) + movementTypeCode),
+      )
     ) {
       return false
     }
